@@ -3,7 +3,7 @@
 <div id="monaco-editor" style="height:400px;border:1px solid #ccc;"></div>
 
 <script>
-  
+  var ClientIDToColor = []
 document.addEventListener('DOMContentLoaded', () => {
   const ydoc = new Y.Doc()
   const ytext = ydoc.getText('monaco')
@@ -19,9 +19,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    provider.awareness.setLocalStateField('email', 'user@example.com')
+    provider.awareness.setLocalStateField('color', 'red')
+
     const monacoBinding = new Ymocano.MonacoBinding(ytext, (editor.getModel()), new Set([editor]), provider.awareness)
+    const styleElement = document.createElement('style')
+    document.head.appendChild(styleElement)
+
+   provider.awareness.on('update', () => {
+    provider.awareness.getStates().forEach((state, clientId) => {
+        if(ClientIDToColor[clientId] ! == null){
+            ClientIDToColor[clientId] = generateRandomColor()
+            const color = ClientIDToColor[clientId]
+            styleElement.innerHTML += `
+                    .yRemoteSelection-${userId} {
+                        background-color: ${color}50;
+                    }
+                    .yRemoteSelectionHead-${userId} {
+                        border-left: 2px solid ${color};
+                    }
+                    `
+        }
+        })
+    })
+
 });
 
+function generateRandomColor() {
+        return `#${Math.floor(Math.random() * 16777215).toString(16)}`
+        }
 
 </script>
 

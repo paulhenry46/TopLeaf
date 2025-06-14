@@ -4,6 +4,8 @@
 
 <script>
   var ClientIDToColor = []
+  var EditorsData = []
+  var currentEditors = []
 document.addEventListener('DOMContentLoaded', () => {
   const ydoc = new Y.Doc()
   const ytext = ydoc.getText('monaco')
@@ -19,30 +21,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    provider.awareness.setLocalStateField('email', 'user@example.com')
-    provider.awareness.setLocalStateField('color', 'red')
+    provider.awareness.setLocalStateField('name', 'Paulhenry')
+    provider.awareness.setLocalStateField('color', generateRandomColor())
 
     const monacoBinding = new Ymocano.MonacoBinding(ytext, (editor.getModel()), new Set([editor]), provider.awareness)
     const styleElement = document.createElement('style')
     document.head.appendChild(styleElement)
 
-   provider.awareness.on('update', () => {
-    provider.awareness.getStates().forEach((state, clientId) => {
-        if(ClientIDToColor[clientId] ! == null){
-            ClientIDToColor[clientId] = generateRandomColor()
-            const color = ClientIDToColor[clientId]
-            styleElement.innerHTML += `
-                    .yRemoteSelection-${userId} {
-                        background-color: ${color}50;
-                    }
-                    .yRemoteSelectionHead-${userId} {
-                        border-left: 2px solid ${color};
-                    }
-                    `
-        }
-        })
-    })
+   provider.awareness.on('change', () => {
+        if(Array.from(provider.awareness.getStates().keys()).sort().toString() !== Array.from(currentEditors.keys()).sort().toString() ){
+            console.log(Array.from(provider.awareness.getStates().keys()))
+            currentEditors = []
 
+            provider.awareness.getStates().forEach((state, clientId) => {
+
+                currentEditors[clientId] = state.name
+                styleElement.innerHTML += `
+                            .yRemoteSelection-${clientId} {
+                                background-color: ${state.color}50;
+                            }
+                            .yRemoteSelectionHead-${clientId} {
+                                border-left: ${state.color} solid 2px;
+                                border-top: ${state.color} solid 2px;
+                                border-bottom: ${state.color} solid 2px;
+                            }
+                            `
+            })
+        }
+    })
 });
 
 function generateRandomColor() {
@@ -57,14 +63,8 @@ function generateRandomColor() {
             height:600px;
             border:1px solid #ccc;
         }
-        .yRemoteSelection {
-            background-color: rgb(250, 129, 0, .5)
-        }
         .yRemoteSelectionHead {
             position: absolute;
-            border-left: orange solid 2px;
-            border-top: orange solid 2px;
-            border-bottom: orange solid 2px;
             height: 100%;
             box-sizing: border-box;
         }
